@@ -1,4 +1,4 @@
-/* Last WORKING CODE - 1st February 2015
+/*
  * Copyright (C) 2015 Matthias Heizmann (heizmann@informatik.uni-freiburg.de)
  * Copyright (C) 2015 University of Freiburg
  * 
@@ -186,14 +186,12 @@ public class FlowSensitiveFaultLocalizer {
 	{
 		NestedWord<CodeBlock> counterexampleWord = (NestedWord<CodeBlock>) counterexampleRun.getWord();
 		
-		m_Logger.warn(" - - - ENTERED computerFlowSensitiveTraceFormula - - - ");
-		// nice representation of error trace (important for interprocedural traces)
+		m_Logger.warn(" * * * * ENTERED computerFlowSensitiveTraceFormula * * * * * ");
 		DefaultTransFormulas nestedTransFormulas = new DefaultTransFormulas(counterexampleWord, errorPrecondition, falsePredicate, new TreeMap<>(), modGlobVarManager, false);
 		NestedSsaBuilder ssaBuilder = new NestedSsaBuilder(counterexampleWord, smtManager, nestedTransFormulas, modGlobVarManager, m_Logger, false);
-		// nice representation where all variables have been renamed
 		NestedFormulas<Term, Term> ssa = ssaBuilder.getSsa();
-		m_Logger.warn("Counter Example -- >> " + ssa.getTrace().asList() ); //Program statements in a list.
-		//Term precondition = ssa.getPrecondition();
+		m_Logger.warn("Counter Example = " + ssa.getTrace().asList() ); //counter example in a list.
+		m_Logger.warn("Precondition = " + ssa.getPrecondition());
 		//m_Logger.warn("PRECONDITION --> " + precondition);
 		m_Logger.warn("- -");
 		
@@ -205,10 +203,8 @@ public class FlowSensitiveFaultLocalizer {
 			formulas_list.add(ssa.getFormulaFromNonCallPos(k));
 		}
 		Term conjunct_formula = SmtUtils.and(smtManager.getScript(), formulas_list); //make conjuncts from a list of formulas.
-		m_Logger.warn("CONJUNCTION OF COUNTER EXAMPLE -->> " + conjunct_formula);
+		m_Logger.warn("CONJUNCTION OF COUNTER EXAMPLE = " + conjunct_formula);
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		
-
 		m_Logger.warn("Location check 1 for debugging");
 		
 		//////////////////////////////////////////- - FORMULA WITH IMPLICATIONS - - ////////////////////////////
@@ -220,13 +216,8 @@ public class FlowSensitiveFaultLocalizer {
 			right_side = ssa.getFormulaFromNonCallPos(k); // Formula that will be put on the right side of the implication
 			implication_formula = Util.implies(smtManager.getScript(), implication_formula, right_side); 
 		}
-		m_Logger.warn("IMPLICATION FORMULA OF COUNTER EXAMPLE -->> " + implication_formula);
-		//////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-		
-		
-		
-		
+		m_Logger.warn("IMPLICATION FORMULA OF COUNTER EXAMPLE = " + implication_formula);
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////	
 		m_Logger.warn("Location check 2 for debugging");
 		
 		
@@ -234,14 +225,10 @@ public class FlowSensitiveFaultLocalizer {
 		Cnf cnf = new Cnf(smtManager.getScript(), m_Services , smtManager.getVariableManager());
 		Term conjunctive_normal_form = cnf.transform(implication_formula); //Term is a formula 
 		Term[] conjunt_array = SmtUtils.getConjuncts(conjunctive_normal_form);
-		m_Logger.warn("CONJUNCTS IN CNF -->> " + conjunt_array);
+		m_Logger.warn("CONJUNCTS IN CNF = " + conjunt_array);
 		//////////////////////////////////////////////////////////////////////////////////////////////
 		
 		// We also have to do a mapping, which maps each formula to each statement in the program.
-		
-		
-		
-		
 		m_Logger.warn("Locationcheck 3 for debugging");
 		
 		
