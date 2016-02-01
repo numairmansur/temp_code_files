@@ -88,7 +88,7 @@ public class FlowSensitiveFaultLocalizer {
 		ArrayList<int[]> informationFromCFG = computeInformationFromCFG( (NestedRun<CodeBlock, IPredicate>) counterexample, cfg); //Get branch information. in the form of an array list
 		IPredicate errorPrecondition = computeErrorPrecondition((NestedWord<CodeBlock>) counterexample.getWord(), smtManager, predicateUnifier, modGlobVarManager, informationFromCFG);
 		//ArrayList<int[]> informationFromCFG = computeInformationFromCFG( (NestedRun<CodeBlock, IPredicate>) counterexample, cfg); //Get branch information. in the form of an array list
-		computeFlowSensitiveTraceFormula(errorPrecondition, counterexample, predicateUnifier.getFalsePredicate(), modGlobVarManager, smtManager);
+		computeFlowSensitiveTraceFormula(errorPrecondition, counterexample, predicateUnifier.getFalsePredicate(), modGlobVarManager, smtManager,informationFromCFG);
 	}
 
 	@SuppressWarnings("null")
@@ -181,7 +181,7 @@ public class FlowSensitiveFaultLocalizer {
 	}
 
 	private void computeFlowSensitiveTraceFormula(IPredicate errorPrecondition, IRun<CodeBlock, IPredicate> counterexampleRun,
-		IPredicate falsePredicate, ModifiableGlobalVariableManager modGlobVarManager, SmtManager smtManager) 
+		IPredicate falsePredicate, ModifiableGlobalVariableManager modGlobVarManager, SmtManager smtManager, ArrayList<int[]> informationFromCFG) 
 	
 	{
 		NestedWord<CodeBlock> counterexampleWord = (NestedWord<CodeBlock>) counterexampleRun.getWord();
@@ -193,6 +193,11 @@ public class FlowSensitiveFaultLocalizer {
 		m_Logger.warn("Counter Example = " + ssa.getTrace().asList() ); //counter example in a list.
 		m_Logger.warn("Precondition = " + ssa.getPrecondition());
 		//m_Logger.warn("PRECONDITION --> " + precondition);
+		int[] Branch_Information = informationFromCFG.get(0); // !!! CAUTION !!! JUST FOR ONE AT THE MOMENT _ _ !!! HARD CODED !!!
+		int a = Branch_Information[0]; //Location of branch out. Maybe the counter example location. Have to check
+		int b = Branch_Information[1]; // Location of Branch in. Maybe the counter example location. Have to check
+		m_Logger.warn("Branch out at "+a);
+		m_Logger.warn("Branch in at " + b);
 		m_Logger.warn("- -");
 		
 		//////////////////////////////////////////// - - FORMULA WITH CONJUNCTS - -//////////////////////////////////////?/
