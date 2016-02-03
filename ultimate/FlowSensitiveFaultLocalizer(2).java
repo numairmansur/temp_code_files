@@ -200,7 +200,7 @@ public class FlowSensitiveFaultLocalizer {
 		m_Logger.warn("Branch in at " + b);
 		m_Logger.warn("- -");
 		
-		//////////////////////////////////////////// - - FORMULA WITH CONJUNCTS - -//////////////////////////////////////?/
+		//////////////////////////////////////////// - - FORMULA WITH CONJUNCTS - - ////////////////////////////////////////
 		ArrayList<Term> formulas_list = new ArrayList<Term>(); // initializing a new array list that will be later turned to conjuncts
 		//formulas_list.add(Util.not(smtManager.getScript(), ssa.getPrecondition())); // adding the precondition in the array
 		for(int k = 0; k < counterexampleWord.length(); k++)
@@ -226,12 +226,24 @@ public class FlowSensitiveFaultLocalizer {
 		m_Logger.warn("Location check 2 for debugging");
 		
 		
+		
+		//////////////////////////////////////// - - - Pro-Flow Sensitive Formula //////////////////////////////////
+		
+		// Markhor-formula:: ( guard(branch) IMPLIES branch AND neg( guard(branch) ) IMPLIES all variables remain the same )
+		// The problem is how to use markhor formula.
+		
+		
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		
 		/////////////////////////////////////// - - TRANSFORM INTO CONJUNCTIVE NORMAL FORM - - ////////
 		Cnf cnf = new Cnf(smtManager.getScript(), m_Services , smtManager.getVariableManager());
 		Term conjunctive_normal_form = cnf.transform(implication_formula); //Term is a formula 
 		Term[] conjunt_array = SmtUtils.getConjuncts(conjunctive_normal_form);
 		m_Logger.warn("CONJUNCTS IN CNF = " + conjunt_array);
 		//////////////////////////////////////////////////////////////////////////////////////////////
+		
+		
+		
 		
 		// We also have to do a mapping, which maps each formula to each statement in the program.
 		m_Logger.warn("Locationcheck 3 for debugging");
