@@ -36,3 +36,6 @@ print('---------------------------')
 print(latex_matrix_string(mean, std))
 
 
+# ADD plus minus STD with each cell value of the mean.
+
+
