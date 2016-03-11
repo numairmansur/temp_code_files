@@ -14,24 +14,31 @@ $2{\scriptstyle \pm 1}$ & $7{\scriptstyle \pm 4}$ & $7{\scriptstyle \pm 8}$ \\ \
 \end{center}
 
 \begin{table}[ht]
-\caption{Some Title} % title of Table
+ % title of Table
 \centering % used for centering table
-\begin{tabular}{c c c c} % centered columns (4 columns)
-\\[-2ex]
-\hline\hline  %inserts double horizontal lines
-\\[-2ex]
+\begin{tabular}{|c|c|c|c|} % centered columns (4 columns)
+
+\hline
  & \textbf{Column} & \textbf{Column} & \textbf{Column} \\ [0.1ex] % inserts table
 %heading
 %\hline % inserts single horizontal line
-\\[-2ex]
-\textbf{Row} & $1 \pm 2$ & $\mathbf{1 \pm 2}$ & $1 \pm 2$ \\ % inserting body of the table
+
+
+\hline
+\textbf{Row} & $1 \pm 2$ & $\mathbf{1 \pm 2}$ & $1 \pm 2$ \\ 
+\hline
 \textbf{Row} & $1 \pm 2$ & $1 \pm 2$ & $\mathbf{1 \pm 2}$ \\
+\hline
 \textbf{Row} & $\mathbf{1 \pm 2}$ & $1 \pm 2$ & $1 \pm 2$ \\
+\hline
 \textbf{Row} & $1 \pm 2$ & $\mathbf{1 \pm 2}$ & $1 \pm 2$ \\
-\textbf{Row} & $\mathbf{1 \pm 2}$ & $1 \pm 2$ & $1 \pm 2$ \\ [1ex] % [1ex] adds vertical space
+\hline
+\textbf{Row} & $\mathbf{1 \pm 2}$ & $1 \pm 2$ & $1 \pm 2$ \\
 \hline %inserts single line
 \end{tabular}
 \label{table:nonlin} % is used to refer this table in the text
+\\[-1.5ex]
+\caption{Some Title}
 \end{table}
 		
 \end{document}
