@@ -1,41 +1,42 @@
 '''
-author: Numair Mansur (numair.mansur@gmail.com)
-Convert a matrix into a latex string. Put that string into a .tex file. also if possible compile that .tex file and generate a pdf page for that matrix.
-Input Parameters:
-Outputs:
+Latex matrix string generator
 '''
 
-def latex_matrix_string(m,std):
-	matrix_string =''''''
-	column_string ='''{ '''
-	for i,row in enumerate(m):
-		column_string = column_string + '''c '''
+def latex_matrix_string(mean,std):
+	matrix_string ='''\hline 
+'''
+	for i,row in enumerate(mean):
+		column_string ='''{ '''
 		for j,cell in enumerate(row):
-			ending_string = ''' & ''' if j < len(row)-1 else ''' \\\ '''
-			matrix_string = matrix_string + str(cell)+ ending_string
-		
-	column_string = column_string +'''} '''
+			column_string = column_string + '''|c'''
+			ending_string = ''' & ''' if j < len(row)-1 else ''' \\\ \hline
+'''
+			#matrix_string = matrix_string +"$" + str(cell)+" \pm "+str(std[i][j])+"$"+ ending_string       			 #STRING NUMBER 1
+			matrix_string = matrix_string +"$" + str(cell)+"{\scriptstyle \pm "+str(std[i][j])+"}$"+ ending_string       #STRING NUMBER 2
+	column_string = column_string +'''| }'''
+	
+	latex_string1 = '''\\begin{tabular}
+'''+column_string+'''
+'''+matrix_string+'''\end{tabular}''' #Produces the string in multiple lines to increase readibility.
+	
+	latex_string2 = "\\begin{center}\\begin{tabular}"+column_string+ matrix_string+"\end{tabular}\end{center}"  #Produces the string in one line
+	
+	return latex_string1
 
 
 
-	latex_string = '''\\begin{center}
-\\begin{tabular}'''+column_string+'''
-'''+matrix_string+'''   
-\end{tabular}
-\end{center}'''
+#EXAMPLE
+mean =[[1,1,5],[2,7,6],[2,7,7]]
+std=[[2,6,1],[4,8,2],[1,4,8]]
 
-	print(matrix_string)
-	return latex_string
-
-
-
-
-mean =[[1,1],[2,7]]
-std=[[2,6],[4,8]]
 print('---------------------------')
+print(" ")
 print(latex_matrix_string(mean, std))
 
 
-# ADD plus minus STD with each cell value of the mean.
-
-
+#TOdo: 
+# 1) pass labels for row and columns as a list of strings.
+# 2) bold_best_row, best_column
+# 3) title
+# 4) std -> error
+# 5) Add docstring in the same format as in ROBO.
