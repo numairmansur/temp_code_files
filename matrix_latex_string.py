@@ -1,37 +1,42 @@
-\documentclass{article}
+'''
+Latex matrix string generator
+'''
 
-\begin{document}
-\begin{center}
+def latex_matrix_string(mean,error):
+	matrix_string ='''\hline 
+'''
+	for i,row in enumerate(mean):
+		column_string ='''{ '''
+		for j,cell in enumerate(row):
+			column_string = column_string + '''|c'''
+			ending_string = ''' & ''' if j < len(row)-1 else ''' \\\ \hline
+'''
+			#matrix_string = matrix_string +"$" + str(cell)+" \pm "+str(error[i][j])+"$"+ ending_string       			 #STRING NUMBER 1
+			matrix_string = matrix_string +"$" + str(cell)+"{\scriptstyle \pm "+str(error[i][j])+"}$"+ ending_string       #STRING NUMBER 2
+	column_string = column_string +'''| }'''
+	
+	latex_string1 = '''\\begin{tabular}
+'''+column_string+'''
+'''+matrix_string+'''\end{tabular}''' #Produces the string in multiple lines to increase readibility.
+	
+	latex_string2 = "\\begin{center}\\begin{tabular}"+column_string+ matrix_string+"\end{tabular}\end{center}"  #Produces the string in one line
+	
+	return latex_string1
 
 
-\begin{tabular}
-{ |c|c|c| }
-\hline 
-$1{\scriptstyle \pm 2}$ & $1{\scriptstyle \pm 6}$ & $5{\scriptstyle \pm 1}$ \\ \hline
-$2{\scriptstyle \pm 4}$ & $7{\scriptstyle \pm 8}$ & $6{\scriptstyle \pm 2}$ \\ \hline
-$2{\scriptstyle \pm 1}$ & $7{\scriptstyle \pm 4}$ & $7{\scriptstyle \pm 8}$ \\ \hline
-\end{tabular}
-\end{center}
 
-\begin{table}[ht]
-\caption{Some Title} % title of Table
-\centering % used for centering table
-\begin{tabular}{c c c c} % centered columns (4 columns)
-\\[-2ex]
-\hline\hline  %inserts double horizontal lines
-\\[-2ex]
- & \textbf{Column} & \textbf{Column} & \textbf{Column} \\ [0.1ex] % inserts table
-%heading
-%\hline % inserts single horizontal line
-\\[-2ex]
-\textbf{Row} & $1 \pm 2$ & $\mathbf{1 \pm 2}$ & $1 \pm 2$ \\ % inserting body of the table
-\textbf{Row} & $1 \pm 2$ & $1 \pm 2$ & $\mathbf{1 \pm 2}$ \\
-\textbf{Row} & $\mathbf{1 \pm 2}$ & $1 \pm 2$ & $1 \pm 2$ \\
-\textbf{Row} & $1 \pm 2$ & $\mathbf{1 \pm 2}$ & $1 \pm 2$ \\
-\textbf{Row} & $\mathbf{1 \pm 2}$ & $1 \pm 2$ & $1 \pm 2$ \\ [1ex] % [1ex] adds vertical space
-\hline %inserts single line
-\end{tabular}
-\label{table:nonlin} % is used to refer this table in the text
-\end{table}
-		
-\end{document}
+#EXAMPLE
+mean =[[1,1,5],[2,7,6],[2,7,7]]
+error=[[2,6,1],[4,8,2],[1,4,8]]
+
+print('---------------------------')
+print(" ")
+print(latex_matrix_string(mean, error))
+
+
+#TOdo: 
+# 1) pass labels for row and columns as a list of strings.
+# 2) bold_best_row, best_column
+# 3) titlel
+# 4) std -> error   DONE
+# 5) Add docstring in the same format as in ROBO.
