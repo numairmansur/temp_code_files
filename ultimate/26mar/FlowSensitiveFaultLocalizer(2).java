@@ -67,6 +67,7 @@ import de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction.si
 import de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction.singleTraceCheck.NestedSsaBuilder;
 import de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction.singleTraceCheck.PredicateUnifier;
 import de.uni_freiburg.informatik.ultimate.result.IRelevanceInformation;
+import de.uni_freiburg.informatik.ultimate.plugins.generator.traceabstraction.RelevanceInformation;
 import de.uni_freiburg.informatik.ultimate.util.ToolchainCanceledException;
 /**
  * 
@@ -76,24 +77,22 @@ import de.uni_freiburg.informatik.ultimate.util.ToolchainCanceledException;
  * 
  *
  */
-public class FlowSensitiveFaultLocalizer 
-{
+public class FlowSensitiveFaultLocalizer {
 
 	private IUltimateServiceProvider m_Services;
 	private final Logger m_Logger;
+	private ArrayList<IRelevanceInformation> Relevance_of_statements = new ArrayList<>(); 
 
 	public FlowSensitiveFaultLocalizer(IRun<CodeBlock, IPredicate> counterexample,
 			INestedWordAutomaton<CodeBlock, IPredicate> cfg, IUltimateServiceProvider services, SmtManager smtManager,
-			ModifiableGlobalVariableManager modGlobVarManager, PredicateUnifier predicateUnifier)
-	{
+			ModifiableGlobalVariableManager modGlobVarManager, PredicateUnifier predicateUnifier) {
 		m_Services = services;
 		m_Logger = m_Services.getLoggingService().getLogger(Activator.s_PLUGIN_ID);
-		m_Logger.warn("* * * ENTERED FLOW SENSITIVE FAULT LOCALIZER * * * *");
 		ArrayList<int[]> informationFromCFG = computeInformationFromCFG( (NestedRun<CodeBlock, IPredicate>) counterexample, cfg); //Get branch information. in the form of an array list
 		computeFlowSensitiveTraceFormula(counterexample, predicateUnifier.getFalsePredicate(), modGlobVarManager, smtManager,informationFromCFG);
 	}
 
-	@SuppressWarnings("null")
+
 	private ArrayList<int[]> computeInformationFromCFG(NestedRun<CodeBlock, IPredicate> counterexample,
 			INestedWordAutomaton<CodeBlock, IPredicate> cfg) 
 	{
@@ -269,24 +268,34 @@ public class FlowSensitiveFaultLocalizer
 		NestedWord<CodeBlock> counterexampleWord = (NestedWord<CodeBlock>) counterexampleRun.getWord();
 		PredicateTransformer pt = new PredicateTransformer(smtManager, modGlobVarManager, m_Services);
 		FaultLocalizationRelevanceChecker rc = new FaultLocalizationRelevanceChecker(smtManager.getManagedScript(), modGlobVarManager, smtManager.getBoogie2Smt());
-		// NON-Flow Sensitive ANALYSIS.
-		m_Logger.warn("Doing Incremental Analysis . . .");
+		
+		
+		
+		// Non-Flow Sensitive INCREMENTAL ANALYSIS
+		m_Logger.warn("Initializing Non-Flow Sensitive INCREMENTAL ANALYSIS . . .");
 
 		ArrayList<CodeBlock> relevant = new ArrayList<>(); //Will store the terms relevant for the error.
 		ArrayList<IPredicate> weakest_precondition_list = new ArrayList<>();
 		ArrayList<IPredicate> pre_precondition_list = new ArrayList<>();
 		
 		int backward_counter = counterexampleWord.length();
-
+		
+		//Relevency Information of the last statement
+		IRelevanceInformation relevancy_of_statement = new RelevanceInformation();
+		((RelevanceInformation) relevancy_of_statement).setStatement(counterexampleWord.getSymbolAt(backward_counter-1));
+		Relevance_of_statements.add(relevancy_of_statement);
+		
 		IPredicate weakest_precondition = smtManager.newFalsePredicate(); // FALSE for WP(False, error_trace)
 		for(int j = counterexampleWord.length() - 1; j>=0; j--)
 		{
-			IRelevanceInformation rel = new RelevanceInformation();
-			CodeBlock statement = counterexampleWord.getSymbolAt(j);			
+			CodeBlock statement = counterexampleWord.getSymbolAt(j);
 			TransFormula transition_formula = statement.getTransitionFormula();
 			weakest_precondition = pt.weakestPrecondition(weakest_precondition, transition_formula);
 			weakest_precondition_list.add(weakest_precondition);
 			pre_precondition_list.add(smtManager.newPredicate(smtManager.not(weakest_precondition)));
+			
+
+				
 		}
 		int wp_counter = 0;
 		int pre_counter = wp_counter + 1;
@@ -294,11 +303,13 @@ public class FlowSensitiveFaultLocalizer
 		{
 
 			
-
+				
 				CodeBlock statement = counterexampleWord.getSymbolAt(i);
 				TransFormula a = statement.getTransitionFormula();
+				// Relevancy Information.
+				relevancy_of_statement = new RelevanceInformation();
+				((RelevanceInformation) relevancy_of_statement).setStatement(statement);
 				
-
 				BasicInternalAction basic = new BasicInternalAction(statement.getPreceedingProcedure(),statement.getSucceedingProcedure(), statement.getTransitionFormula());
 				
 				
@@ -312,17 +323,17 @@ public class FlowSensitiveFaultLocalizer
 					m_Logger.warn("RELEVANT");
 					m_Logger.warn(statement);
 					relevant.add(statement);
+					// SET CRITERIA 1 TO TRUE
+					((RelevanceInformation) relevancy_of_statement).setCriteria1(true);
 					
 				}
 				wp_counter = wp_counter + 1;
 				pre_counter = pre_counter + 1;
-
-				
+				// Adding relevancy information in the array list Relevance_of_statements
+				Relevance_of_statements.add(relevancy_of_statement);
+			
 			
 		}
-		
-		m_Logger.warn(relevant);
-		
 	}
 
 	/**
@@ -357,16 +368,18 @@ public class FlowSensitiveFaultLocalizer
 	 */
 	public ArrayList<IRelevanceInformation> getRelevanceInformation() 
 	{
-		// For example:
-		// We make have an object of flow sensitive fault localization called F.
-		// Then F.getRelevanceInformation() should return us a list of IRelevanceInformation objects.
-		
-		  // THIS WILL BE THE IRELEVANCEINFORMATION OBJECT !
-		m_Logger.warn("hello there !");
-		
-		
-		
-		return null;
+		for(int i= 0;i <Relevance_of_statements.size()/2;i++)
+		{
+			IRelevanceInformation temp = Relevance_of_statements.get(i);
+			Relevance_of_statements.set(i, Relevance_of_statements.get(Relevance_of_statements.size()-i-1));
+			Relevance_of_statements.set(Relevance_of_statements.size()-i-1, temp);
+		}
+		m_Logger.warn("- - - - - - - -");
+		for(int i= 0;i <Relevance_of_statements.size();i++)
+		{
+			m_Logger.warn(((RelevanceInformation) Relevance_of_statements.get(i)).getStatement() +" | " +Relevance_of_statements.get(i).getShortString());
+		}
+		return Relevance_of_statements;
 	}
 	
 }
