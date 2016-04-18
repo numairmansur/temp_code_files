@@ -322,7 +322,7 @@ public class FlowSensitiveFaultLocalizer {
 			return markhor;
 		}
 		else{ // BRANCH IS NOT RELEVANT
-			return null;
+			return markhor;
 		}
 	}
 	
