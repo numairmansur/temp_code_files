@@ -1,0 +1,43 @@
+		false					0
+0) "y := 0;"
+ 		(not (= foo_y 0))		1
+1) "z := 0;"
+ 		(or (not (= foo_y 0)) (not (= foo_z 0)))		2
+2) "assume y == 0;" 
+ 		(not (= foo_z 0))		3
+3) "x := 1;" 
+ 		(or (not (= foo_z 0)) (= foo_x 0))		4
+4) "assume z == 0;" "
+ 		206#(= foo_x 0)		5
+5) z := 1;" 
+ 		205#(= foo_x 0)		6
+6) "assume !(x == 0);"
+		false				7
+
+
+
+
+procedure foo()
+{
+  var y: int;
+  var x: int;
+  var z: int;
+  
+  y := 0;
+  z := 0;
+  if(y==0) 
+  {
+    x := 1;
+    if(z==0)
+    {
+      z := 1;
+    }
+  }
+  else 
+  {
+    y := 2;
+    y := 3;
+    y := 4;
+  }
+  assert(x == 0);
+}
