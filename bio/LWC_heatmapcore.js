@@ -1,6 +1,5 @@
 function heatmap(selector, data, options) 
 {
-	debugger;
 	console.log("d3HeatMap: Last Updated 17,April [4:41 PM]")
 	console.log(data);
     console.log(data.dend_row)
@@ -773,6 +772,11 @@ function string_parser(string_array,location_object_array, pointer)
 		}
 		
 	}
+	// Adding ID's for each object to be used later by the onClick and onHover function.
+	for(i in table)
+	{
+		table[i].id = i;	
+	}
 return table;
 
 
@@ -792,6 +796,7 @@ function drawLines(table, links1)
      			links1[links1Counter].source.y = table[i].location.horizontal;
     			links1[links1Counter].target.x = table[i].children[j].location.vertical;
   				links1[links1Counter].target.y = table[i].children[j].location.horizontal;
+  				links1[links1Counter].children.push(table[i].children[j].id);
   				links1Counter ++;
 			}
 		}
@@ -846,11 +851,12 @@ function drawLines(table, links1)
       return {
         source: {x: 0, y: 0}, // SOME CHANGES HERE
         target: {x: 0, y: 0}, // SOME CHANGES HERE
-        edgePar: link.target.edgePar
+        edgePar: link.target.edgePar,
+        children:[]
       };
     });
 
-
+debugger;
 ///////////////////// ****************** Some New experimental TESTING CODE ****
 
   //Refine Location Object Array
@@ -866,7 +872,6 @@ function drawLines(table, links1)
     location_object_array[i].begin = location_object_array[i-1].end;
   }
   // Refinment Done.
-  debugger;
   var  table = string_parser(dend_row_newick_format.split(""), location_object_array, 0);
   var links1 = drawLines(table, links1); // NOW DRAW THE LINES ACCORDING TO THE INFORMATION IN table. 
 
@@ -875,19 +880,13 @@ function drawLines(table, links1)
 
 
 	
-
-    var lines = dendrG.selectAll("polyline").data(links1);
+	
+    lines = dendrG.selectAll("polyline").data(links1); // GOLABAL !!! CAAREFULL
     lines
       .enter().append("polyline")
         .attr("class", "link")
-        .attr("stroke", function(d, i) {
-          if (!d.edgePar.col) {
-            return opts.link_color;
-          } else {
-            return d.edgePar.col;
-          }
-        })
-        .attr("stroke-width", edgeStrokeWidth)
+        .attr("stroke", "#A2A2A2")
+        .attr("stroke-width", "1.5")
         .attr("stroke-dasharray", function(d, i) {
           var pattern;
           switch (d.edgePar.lty) {
@@ -917,9 +916,26 @@ function drawLines(table, links1)
           }
           return pattern.join(",");
         })
-        .on('hover',function(d,i){
-        	d3.select(this).style("stroke", "red");
-        });
+        .on("mouseover",function(d,i){
+        								console.log(i);
+        								console.log(d);
+										d3.select(this)
+										.style("cursor", "pointer")
+										.style("stroke", "blue")
+										.attr("stroke-width", "3");
+										
+										d3.select(lines[0][1])
+										.style("stroke","blue");
+       	 							})
+        .on("mouseout", function(d,i){
+        								d3.select(this)
+        								.style("stroke", "#A2A2A2")
+        								.attr("stroke-width", "1.5");
+        							})
+        ;
+        debugger;
+
+
 
     function draw(selection) 
     {
@@ -970,10 +986,10 @@ function drawLines(table, links1)
   }
   /// ---------------------------------
 
-  return {
+  return [{
     on: function(type, listener) {
       dispatcher.on(type, listener);
       return this;
     }
-  };
+  }, lines];
 }
