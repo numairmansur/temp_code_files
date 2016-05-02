@@ -584,125 +584,8 @@ function heatmap(selector, data, options)
   }
   
 
- // Function to Parse the string in newick format and 
-function parsenewick (string) 
-{
-    var ancestors = [];
-    var tree = {};
-    var tokens = string.split(/\s*(;|\(|\)|,|:)\s*/);
-    for (var i=0; i<tokens.length; i++) 
-    {
-      var token = tokens[i];
-      switch (token) {
-        case '(': // new branchset
-          var subtree = {};
-
-          tree.children = [subtree];
-          ancestors.push(tree);
-          tree = subtree;
-          break;
-        case ',': // another branch
-          var subtree = {};
-          ancestors[ancestors.length-1].children.push(subtree);
-          tree = subtree;
-          break;
-        case ')': // optional name next
-          tree = ancestors.pop();
-          break;
-        case ':': // optional length next
-          break;
-        default:
-          var x = tokens[i-1];
-          if (x == ')' || x == '(' || x == ',') 
-          {
-            tree.name = token;
-          } 
-          else if (x == ':') 
-          {
-            tree.length = parseFloat(token);
-          }
-      }
-    }
-
-    return tree;
-
-}
-
-
-function traverse(o, lowerheight, upperheight, location_object_array, y_location,level=0)
-{
-  pair = -1;
-  line_array = [];
-  source_mid_point = [];
-	for(i in o)
-	{ 
-		if(typeof (o[i]) == "object")
-		{
-			if(o[i].name)
-			{
-
-		        x_location = 0;
-		        y_location = 0;
-		        for(j in location_object_array){if(location_object_array[j].cluster == parseInt(o[i].name)){x_location = location_object_array[j].begin; source_mid_point.push(x_location);}} // Finding the middle point of the cluster
-		        for(j in location_object_array){if(location_object_array[j].cluster == parseInt(o[i].name)){y_location = location_object_array[j].end; source_mid_point.push(y_location);}} // For the target point and the source.
-		        x_axis_of_target_point = (x_location + y_location)/2;
-		        
-		        source = {x:(upperheight+lowerheight)/2, y:10};
-		        target = {x:x_axis_of_target_point , y:0};
-		        line = {source:source, target: target};
-		        pair = pair + 1;
-		        line_array.push(line);
-		        if(pair == 1) // We have found a pair.
-		        {
-		          mid_point = (source_mid_point[0] +source_mid_point[source_mid_point.length-1] ) /2;
-		          for(k in line_array)
-		          {
-		            line_array[k].source.x = mid_point;
-		            numair_nodes.push(line_array[k]);
-		          }
-		          //return source;
-		        }
-
-         
-			}
-			else
-			{	
-				
-				if(i == "children")
-				{
-          
-					traverse(o[i],lowerheight,upperheight,location_object_array,y_location,level+1);
-				}
-				if( i == "0")
-				{ //up
-			          source = {x:(upperheight+lowerheight)/2, y:y_location};
-			          target = {x:(upperheight+lowerheight)/4 , y:y_location-2};
-			          line = {source:source, target: target};
-			          //numair_nodes.push(line);
-						traverse( o[i],lowerheight,(upperheight+lowerheight)/2,location_object_array, y_location-2,level+1);
-				}
-				if( i == "1")
-				{ //down
-			          source = {x:(upperheight+lowerheight)/2, y:y_location};
-			          target = {x:(upperheight+(upperheight/2))/2 , y:y_location-2};
-			          line = {source:source, target: target};
-			          //numair_nodes.push(line);
-					traverse(o[i], (upperheight+lowerheight)/2, upperheight,location_object_array, y_location-2,level+1);
-				}
-								
-				
-			}
-
-		}
-	}
-}
-
-// ADD RETURNS.
-
-
-
-
-function string_parser(string_array,location_object_array, pointer)
+// New function
+function string_parser(string_array,location_object_array, pointer, id)
 {
 	console.log("");
 	var last2Elements=[];
@@ -711,9 +594,10 @@ function string_parser(string_array,location_object_array, pointer)
 	{
 		if (string_array[pointer] == "(")
 		{
-			result = string_parser(string_array,location_object_array, pointer + 1);
+			result = string_parser(string_array,location_object_array, pointer + 1, id);
 			sub_table = result[0];
 			pointer = result[1];
+			id = result[2];
 			table = table.concat(sub_table);
 			last2Elements.push(sub_table[sub_table.length-1]);
 		}
@@ -734,7 +618,7 @@ function string_parser(string_array,location_object_array, pointer)
 					children.push(table[j]);
 				}
 			}
-			else
+			else // Will this always be true ?? Verify !
 			{
 				for(var j=0; j<=last2Elements.length-1;j++)
 				{
@@ -748,8 +632,9 @@ function string_parser(string_array,location_object_array, pointer)
 			// object.
 			var horizontal = (new_character.length-1) * 5;
 			var location = { horizontal: horizontal, vertical: mid_point};
-			table.push({character: new_character, location: location, children: children});
-			return [table, pointer+1];
+			table.push({character: new_character, location: location, children: children, id:id});
+			id = id+1;
+			return [table, pointer+1,id];
 		}
 		else if(string_array[pointer] == ",")
 		{
@@ -766,25 +651,23 @@ function string_parser(string_array,location_object_array, pointer)
 				}
 			}
 			var location = {horizontal: 0, vertical: vertical};
-			table.push({character:string_array[pointer] , location: location, children: null});
-			last2Elements.push({character:string_array[pointer] , location: location, children: null});
+			table.push({character:string_array[pointer] , location: location, children: null, id:id});
+			last2Elements.push({character:string_array[pointer] , location: location, children: null, id:id});
 			pointer = pointer + 1;
+			id = id +1;
 		}
 		
 	}
 	// Adding ID's for each object to be used later by the onClick and onHover function.
-	for(i in table)
-	{
-		table[i].id = i;	
-	}
 return table;
 
 
 }
-
+// New Function
 function drawLines(table, links1)
 {
 	 console.log("Entered dr")
+	 console.log(table);
 	var links1Counter = 0;
 	for (var i in table)
 	{
@@ -796,7 +679,7 @@ function drawLines(table, links1)
      			links1[links1Counter].source.y = table[i].location.horizontal;
     			links1[links1Counter].target.x = table[i].children[j].location.vertical;
   				links1[links1Counter].target.y = table[i].children[j].location.horizontal;
-  				links1[links1Counter].children.push(table[i].children[j].id);
+  				links1[links1Counter].line_name = table[i].children[j].character;
   				links1Counter ++;
 			}
 		}
@@ -852,11 +735,11 @@ function drawLines(table, links1)
         source: {x: 0, y: 0}, // SOME CHANGES HERE
         target: {x: 0, y: 0}, // SOME CHANGES HERE
         edgePar: link.target.edgePar,
-        children:[]
+        line_name: ""
       };
     });
 
-debugger;
+
 ///////////////////// ****************** Some New experimental TESTING CODE ****
 
   //Refine Location Object Array
@@ -872,9 +755,9 @@ debugger;
     location_object_array[i].begin = location_object_array[i-1].end;
   }
   // Refinment Done.
-  var  table = string_parser(dend_row_newick_format.split(""), location_object_array, 0);
+  var  table = string_parser(dend_row_newick_format.split(""), location_object_array, 0, 0);
   var links1 = drawLines(table, links1); // NOW DRAW THE LINES ACCORDING TO THE INFORMATION IN table. 
-
+  
 ////////////////////////////////////////////////////////// *****************  New Code ends here  ******** 
    
 
@@ -922,20 +805,40 @@ debugger;
 										d3.select(this)
 										.style("cursor", "pointer")
 										.style("stroke", "blue")
-										.attr("stroke-width", "3");
+										.attr("stroke-width", "2.5");
 										
-										d3.select(lines[0][1])
-										.style("stroke","blue");
+										for(var j=0;j<table.length;j++)
+										{
+											if(d.line_name.indexOf(links1[j].line_name) > -1 )
+											{
+												d3.select(lines[0][j])
+												.style("stroke","blue")
+												.attr("stroke-width", "2.5");
+											}
+										}
+
+
+
        	 							})
         .on("mouseout", function(d,i){
         								d3.select(this)
         								.style("stroke", "#A2A2A2")
         								.attr("stroke-width", "1.5");
+
+        								for(var j=0;j<table.length;j++)
+										{
+											if(d.line_name.indexOf(links1[j].line_name) > -1 )
+											{
+												d3.select(lines[0][j])
+												.style("stroke","#A2A2A2")
+												.attr("stroke-width", "1.5");
+											}
+										}
+
         							})
         ;
-        debugger;
-
-
+        
+debugger;
 
     function draw(selection) 
     {
