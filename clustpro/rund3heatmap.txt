@@ -1,0 +1,118 @@
+#install.packages("/home/numair/Music/clustpro/d3heatmap/", repos = NULL, type="source")
+#install.packages("/media/numair/Numair2/clustpro/d3heatmap/", repos = NULL, type="source")
+  
+  #require(devtools)
+  #setwd("F:/git/clustpro")
+  #devtools::create("d3heatmap")               # create package using devtools
+  #setwd("D:/git/clustpro/d3heatmap")                          # navigate to package dir
+  #htmlwidgets::scaffoldWidget("mywidget")    # create widget scaffolding
+  #devtools::install()
+  
+  #remove.packages("d3heatmap")
+  if(F){
+    setwd("D:/git/clustpro/d3heatmap")  
+    devtools::install() 
+  }
+
+#library(lib.loc = .Library)
+library(d3heatmap)
+data <- iris
+setwd("D:/log_folder")  
+rnumbers <- sample(1:nrow(data), nrow(data))
+data$Species <- NULL
+data <- data[rnumbers,]
+kc <- kmeans(data,5)
+#x <- iris
+cluster <- kc$cluster
+df <- cbind(data,cluster)
+#colnames(df) <- c('1','2','3','4','cluster')
+sorted <- df[order(df[,'cluster']), ]
+
+require(ctc) ## hclust to Newick format
+mean_cluster <- aggregate(df[-5],df[5],mean, na.rm=TRUE)
+rownames(mean_cluster) <- sapply(mean_cluster$cluster,as.character)
+mean_cluster$cluster <- NULL
+#mean_cluster <- aggregate(sorted[-5],sorted[5],mean, na.rm=TRUE)
+set.seed(1234)
+col_dend <- hclust(dist(t(mean_cluster)))
+
+
+set.seed(1234)
+row_dend <- hclust(dist(mean_cluster))
+
+col_dend_nw <- hc2Newick(col_dend)
+col_dend_nw <- gsub(":\\d+\\.{0,1}\\d*","", col_dend_nw)
+
+row_dend_mw <- hc2Newick(row_dend)
+row_dend_mw <- gsub(":\\d+\\.{0,1}\\d*","", row_dend_mw)
+col_dend <- as.dendrogram(col_dend)
+row_dend <- as.dendrogram(row_dend)
+ordered_df <- NULL
+if(class(row_dend)=="dendrogram"){
+  for (c in order.dendrogram(row_dend)){
+    if(is.null(ordered_df)){ordered_df <- df[df$cluster==c,]}
+    else{ ordered_df <- rbind(ordered_df,df[df$cluster==c,])}
+  }
+}
+
+if(class(col_dend)=="dendrogram"){
+  ordered_df <- ordered_df[,c(order.dendrogram(col_dend),ncol(ordered_df))]
+}
+
+
+color_spectrum_unqiue_breaks <- function(values, color_spect, shift_factor=0.0000000001){
+  index <- 1
+  palette <- c()
+  colors <- c()
+  while(index<length(values)){
+    colors <- c(colors,seq(values[index]+shift_factor,values[index+1]-shift_factor,length=100))
+    index <- index +1
+  }
+  colors <- unique(colors)
+  palette <- colorRampPalette(color_spect)(n = ((length(values)-1)*100)-1)
+  ## standard global variables can define with <<-. However, in this case the variable were blocked by the enviroment so I have to use the                 
+  ## assign function. The first argument is the global variable name, second the local variable in function and the last the target enviroment
+  assign('colors', colors, envir = .GlobalEnv)
+  assign('palette', palette, envir = .GlobalEnv)
+}
+min(df[-5])
+max(df[-5])
+br <- min(diff(c(0,2,4,6,8,10))/40)
+color_spectrum_unqiue_breaks(c(0,2,4,6,8,10),c("grey","khaki2","yellow","orange", "red"),br)
+
+
+
+#d3heatmap(ordered_df,owncluster = ordered_df[5],dendrogram = "row",Rowv = FALSE , Colv = FALSE, dendnw_row = row_dend_mw , dendnw_col = col_dend_nw)
+
+d2 <- ordered_df[-5]
+
+get_color <- function(x){
+  i=1
+  c = colors[i]
+  while(c<x){
+    i=i+1
+    c = colors[i]
+  }
+  
+  return(palette[i-1])
+}
+
+color_matrix <- as.data.frame(apply(d2,c(1,2),get_color)) ## without id column
+colnames(color_matrix) <- colnames(d2)
+rownames(color_matrix) <- rownames(d2)
+
+#color_matrix <- cbind(data.frame(id=rownames(d2)),color_matrix) ## with id column
+
+d3heatmap(ordered_df[-5],
+          clusters = as.vector(unlist(ordered_df[5])),
+          dendrogram = "row",
+          Rowv = TRUE , 
+          Colv = TRUE, 
+          dendnw_row = row_dend_mw, 
+          dendnw_col = col_dend_nw,
+          #my_colors = palette,
+          #my_breaks = colors,
+          color_matrix
+          # colors = palette,
+          # breaks = colors
+)
