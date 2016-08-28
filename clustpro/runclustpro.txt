@@ -1,0 +1,27 @@
+#install.packages("/home/numair/Documents/proteomics/packages/clustpro/", repos = NULL, type="source")
+
+#setwd("D:/git/proteomics/packages)
+#devtools::create("clustpro")
+if(F){
+  library(devtools)
+  setwd("D:/git/proteomics/packages/clustpro")
+  # devtools::check()
+  devtools::document()
+  devtools::install()
+  #devtools::reload()
+}
+setwd("D:/git/proteomics/packages/clustpro/output")
+library(clustpro)
+# library(htmlwidgets)
+# library(ggplot2)
+# library(pracma)
+# library(Biobase)
+# library(Mfuzz)
+# library(clusterSim)
+# library(doSNOW)
+# library(pheatmap)
+# library(gplots)
+# library(ctc)
+# library(jsonlite)
+
+clustpro()
